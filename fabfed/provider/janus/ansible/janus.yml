@@ -1,10 +1,8 @@
-- name: Install Janus and dependencies
+---
+- name: Ansible Service Setup
   hosts: all
-  strategy: free
   become: yes
   roles:
-    - { role: roles/haxorof.docker_ce, tags: 'docker' }
-    - { role: roles/janus, tags: 'janus' }
-    - { role: roles/controller, tags: 'controller' }
-    - { role: roles/janus-add-node, tags: 'janus-add' }
-    - { role: roles/janus-del-node, tags: 'janus-del' }
+    - { role: roles/pip_installer, tags: 'pip-install' }
+    - { role: roles/apt_installer, tags: 'apt-install' }
+    - { role: roles/fact_gatherer, tags: 'gather-facts' }
