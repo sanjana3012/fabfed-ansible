@@ -2,7 +2,7 @@ variable:
   - node_count:
       default: 1
   - cloulab_device:
-      default: CloudLab-Clemson    # Utah-Cloudlab-Powder
+      default: Cloudlab-Utah    # Utah-Cloudlab-Powder
 provider:
   - cloudlab:
       - cloudlab_provider:
@@ -12,10 +12,6 @@ provider:
       - fabric_provider:
           credential_file: ~/.fabfed/fabfed_credentials.yml
           profile: fabric
-  - janus:
-      - janus_provider:
-          credential_file: ~/.fabfed/fabfed_credentials.yml
-          profile: janus
 config:
   - layer3:
       - layer3_config:
@@ -25,6 +21,7 @@ resource:
       - cnet:
           provider: '{{cloudlab.cloudlab_provider }}'
           layer3: '{{ layer3.layer3_config }}'
+          profile: das-fabfed-clem
       - fabric_network:
           provider: '{{ fabric.fabric_provider }}'
           layer3: '{{ layer3.layer3_config }}'
@@ -43,11 +40,4 @@ resource:
           # nic_model: NIC_Basic
           network: '{{ network.fabric_network }}'
           count: '{{ var.node_count }}'
-  - service:
-      - dtn_service:
-          provider: '{{ janus.janus_provider }}'
-          controller: '{{ node.fabric_node }}'
-          node: ['{{ node.cloudlab_node }}', '{{ node.fabric_node }}']
-          image: dtnaas/tools
-          profile: fabfed
-          count: 0 # SET THIS TO 1 if you want use janus service
+
