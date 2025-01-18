@@ -47,7 +47,7 @@ class JanusService(Service):
         Executes the roles to install apt and pip packages.
         """
         try:
-            self._do_ansible(tags=["gather-facts"])
+            self._do_ansible(tags=["ping_test"])
             self.logger.info(f"Service {self.name} created with apt and pip package installation on nodes: {self._nodes}")
             self.created = True
         except Exception as e:

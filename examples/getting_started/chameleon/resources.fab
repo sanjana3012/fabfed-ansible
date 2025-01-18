@@ -4,10 +4,4 @@ resource:
             provider: '{{ chi.chi_provider }}'
             site: '{{ var.chi_site }}'
             image: CC-Ubuntu20.04
-            network: sharednet1  
-      - service:
-        - ansible_service:
-            provider: '{{ janus.janus_provider }}'
-            node: '{{node.chi_node}}'
-            profile: chi
-            count: 1
+            network: sharednet1
