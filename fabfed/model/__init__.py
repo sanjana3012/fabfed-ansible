@@ -2,6 +2,9 @@ from abc import ABC, abstractmethod
 from collections import namedtuple
 from fabfed.util.utils import get_inventory_dir
 from typing import List
+import json
+import os
+import yaml
 
 class Resource(ABC):
     def __init__(self, label, name: str):
@@ -35,6 +38,32 @@ class SSHNode():
         self.jump_user = jump_user
         self.jump_host = jump_host
         self.jump_keyfile = jump_keyfile
+        self.ssh_config_path=self.read_config_path()
+    
+    def read_config_path(self):
+        try:
+            # Expand the user path and join it with the file name
+            config_path = os.path.expanduser('~/.fabfed/fabfed_credentials.yml')
+
+            # Open the YAML file using the resolved path
+            with open(config_path, 'r') as f:
+                data = yaml.safe_load(f)  # Use safe_load to load the YAML file safely
+
+                print("----------------- CREDENTIAL TEST -----------------")
+                print(data)
+                print(data['fabric']['ssh_config_path'])
+
+                return data['fabric']['ssh_config_path']
+
+        except FileNotFoundError:
+            print("Error: Configuration file not found.")
+            return 'FILE NOT FOUND'
+        except KeyError as e:
+            print(f"Error: Missing key in configuration - {e}")
+            return 'KEY NOT FOUND'
+        except yaml.YAMLError as e:
+            print(f"Error: Failed to parse YAML - {e}")
+            return 'INVALID YAML'
 
     @property
     def sshcmd_str(self) -> str:
@@ -64,12 +93,14 @@ class SSHNode():
 {self.host}
 [{self.name}:vars]
 ansible_connection=ssh
-ansible_ssh_common_args={self.proxyjump_str if self.proxyjump_str else ""}
+ansible_ssh_common_args=-F {self.ssh_config_path}
 ansible_ssh_private_key_file={self.keyfile}
 ansible_user={self.user}
 node={dplane_addr}
 name={friendly_name}-{self.name}
 """
+        print("----------------- TEST -----------------")
+        print(hosts)
         with open(file_path, "w") as stream:
             try:
                 stream.write(hosts)
