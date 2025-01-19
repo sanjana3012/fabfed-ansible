@@ -57,7 +57,7 @@ class ChiNode(Node):
         self.lease_name = f'{self.name}-lease'
         self.addresses = []
         self.reservations = []
-        chi.lease.add_node_reservation(self.reservations, count=1, node_type="compute_cascadelake_r")
+        chi.lease.add_node_reservation(self.reservations, count=1, node_type="compute_cascadelake_r_ib")
         self._lease_helper = util.LeaseHelper(lease_name=self.lease_name, logger=self.logger)
         self.id = ''
         self.dataplane_ipv4 = None

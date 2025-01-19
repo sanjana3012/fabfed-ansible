@@ -20,6 +20,9 @@ class SshNodeTester:
 
         dataplane_addresses = [n.get_dataplane_address(af=Constants.IPv4) for n in self.nodes if
                                n.get_dataplane_address(af=Constants.IPv4)]
+        print("---------------------------DATA PLANE ADDRESSES (IPV4) PRINT--------------------------------------")
+        print(dataplane_addresses)
+        print("----------------------------------END IPV4 PRINT---------------------------------------------------")
         self.run_ping_test = len(dataplane_addresses)
 
         self.passed_dataplane_ping_tests = {}
@@ -33,6 +36,9 @@ class SshNodeTester:
 
         dataplane_addresses = [n.get_dataplane_address(af=Constants.IPv6) for n in self.nodes if
                                n.get_dataplane_address(af=Constants.IPv6)]
+        print("---------------------------DATA PLANE ADDRESSES (IPV6) PRINT--------------------------------------")
+        print(dataplane_addresses)
+        print("----------------------------------END IPV6 PRINT---------------------------------------------------")
         self.run_ipv6_ping_test = len(dataplane_addresses)
 
         self.passed_ipv6_dataplane_ping_tests = {}

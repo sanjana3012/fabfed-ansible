@@ -74,13 +74,19 @@ def add_ip_address_to_network(slice_delegate, node, net_name, node_addr, subnet,
         logger.info(f'node {node.name} already has: {node_addr}')
         return
 
-    for attempt in range(retry):
+    for attempt in range(20):
         try:
             iface = delegate.get_interface(network_name=net_name)
+            print("--------------------------------------iface try--------------------------------------")
+            print(iface)
+            print("--------------------------------------end--------------------------------------")
             logger.info(f'adding ip addr {node_addr}:{subnet}: {net_name}:{node.name}:attempt={attempt + 1}')
             iface.ip_addr_add(addr=node_addr, subnet=subnet)
         except:
             iface = delegate.get_interface(network_name=net_name + "_aux")
+            print("--------------------------------------iface except--------------------------------------")
+            print(iface)
+            print("--------------------------------------end--------------------------------------")
             logger.info(f'adding ip addr {node_addr}:{subnet}: {net_name + "_aux"}:{node.name}:attempt={attempt + 1}')
             iface.ip_addr_add(addr=node_addr, subnet=subnet)
 
@@ -88,12 +94,12 @@ def add_ip_address_to_network(slice_delegate, node, net_name, node_addr, subnet,
             logger.info(f'added ip addr: {node_addr}')
             return
 
-        if attempt == retry:
+        if attempt == 20:
             break
 
         time.sleep(2)
 
-    logger.warning(f'Giving up: adding ip addr: {node_addr} after {retry} attempts')
+    logger.warning(f'Giving up: adding ip addr: {node_addr} after 20 attempts')
 
 
 def add_route(slice_delegate, node, vpc_subnet, gateway, retry):
