@@ -5,4 +5,5 @@
   roles:
    # - { role: roles/pip_installer, tags: 'pip-install' }
    # - { role: roles/apt_installer, tags: 'apt-install' }
-    - { role: roles/fact_gatherer, tags: 'gather-facts' }
+    - { role: roles/ping_test, tags: 'ping-test'}
+   # - { role: roles/fact_gatherer, tags: 'gather-facts' }
