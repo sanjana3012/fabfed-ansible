@@ -11,24 +11,24 @@ APT_TAG = "apt-installer"
 PIP_TAG = "pip-install"
 
 class JanusService(Service):
-    def __init__(self, *, label, name, nodes, provider, logger: logging.Logger):
+    def __init__(self, *, label, name, nodes, provider, playbook_path, logger: logging.Logger):
         super().__init__(label=label, name=name)
         self.logger = logger
         self._nodes = nodes
         self._provider = provider
         self.created = False
+        self.playbook_path = playbook_path
 
-    def _do_ansible(self, tags, extra_vars=None, limit=""):
+    def _do_ansible(self, playbook_path, extra_vars=None, limit=""):
         """
         Executes Ansible playbooks with specific tags and extra variables.
         """
         try:
-            def _helper(host_file, tags, extra_vars=dict(), limit=""):
+            def _helper(host_file, extra_vars=dict(), limit=""):
                 script_dir = os.path.dirname(__file__)
-                playbook_path = os.path.join(script_dir, "ansible/janus.yml")
                 helper = AnsibleRunnerHelper(host_file, self.logger)
                 helper.set_extra_vars(extra_vars)
-                helper.run_playbook(playbook_path, tags=tags, limit=limit)
+                helper.run_playbook(playbook_path, limit=limit)
 
             # Get inventory and extra vars
             friendly_name = self._provider.name
@@ -36,19 +36,20 @@ class JanusService(Service):
             if extra_vars is None:
                 extra_vars = {}
 
-            _helper(host_file, tags, extra_vars, limit)
+            _helper(host_file, extra_vars, limit)
 
         except Exception as e:
             self.logger.error(f"Ansible execution failed: {e}")
             raise
 
-    def create(self):
+    def create(self,playbook_path):
         """
         Executes the roles to install apt and pip packages.
         """
+        self.logger.info(f"--------- IN CREATE METHOD !!! Creating service {self.name} using {self._provider.label}------------")
         try:
-            self._do_ansible(tags=["ping_test"])
-            self.logger.info(f"Service {self.name} created with apt and pip package installation on nodes: {self._nodes}")
+            self._do_ansible(playbook_path)
+            self.logger.info(f"Service {self.name} with {self._nodes}")
             self.created = True
         except Exception as e:
             self.logger.error(f"Failed to create service {self.name}: {e}")
@@ -92,6 +93,7 @@ class JanusProvider(Provider):
         assert resource.get(Constants.LABEL)
         assert resource.get(Constants.RES_TYPE) in Constants.RES_SUPPORTED_TYPES
         assert resource.get(Constants.RES_NAME_PREFIX)
+        assert resource.get("playbook_path")
         creation_details = resource[Constants.RES_CREATION_DETAILS]
 
         # count was set to zero 
@@ -108,20 +110,25 @@ class JanusProvider(Provider):
         Adds the Janus service resource.
         """
         nodes = resource.get("node", [])
+        playbook_path = resource.get("playbook_path")
         if not nodes:
             raise ValueError("No nodes specified for the resource")
+        if not playbook_path:
+            raise ValueError("No playbook path specified for the resource")
 
         service_name = f"{self.name}-{resource.get('label')}"
         service = JanusService(
             label=resource.get("label"),
             name=service_name,
             nodes=nodes,
+            playbook_path=playbook_path,
             provider=self,
             logger=self.logger,
         )
         self._services.append(service)
         try:
-            service.create()
+            self.logger.info(f"--------- IN DO ADD RESOURCE!!!! Adding resource={self.name} using {self.label}----------")
+            # service.create(playbook_path=playbook_path)
             self.resource_listener.on_added(source=self, provider=self, resource=service)
         except Exception as e:
             self.logger.error(f"Failed to add resource: {e}")
@@ -132,8 +139,10 @@ class JanusProvider(Provider):
         Called by add_resource(self, *, resource: dict) if resource has no external dependencies
         @param resource: resource attributes
         """
+        self
         label = resource.get(Constants.LABEL)
         states = resource.get(Constants.SAVED_STATES, [])
+        playbook_path = resource.get("playbook_path")
         created = any(s.attributes.get('created', False) for s in states)
 
         self.logger.info(f"Creating resource={self.name} using {self.label}")
@@ -145,7 +154,8 @@ class JanusProvider(Provider):
         #  self.logger.info(f"Service {label} is already in created state, skipping create task")
         #         service.created = True
         #     else:
-            service.create()
+            self.logger.info(f"--------- IN DO CREATE RESOURCE!!!! Creating resource={self.name} using {self.label}----------")
+            service.create(playbook_path=playbook_path)
             self.resource_listener.on_created(source=self, provider=self, resource=service)
 
     def do_delete_resource(self, *, resource: dict):
