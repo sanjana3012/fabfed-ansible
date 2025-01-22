@@ -1,8 +1,0 @@
----
-- name: Configure and Install MySQL and Docker
-  hosts: all
-  become: yes  # Use sudo to run tasks as root
-
-  roles:
-    - role: ./geerlingguy.mysql
-    - role: ./geerlingguy.docker
